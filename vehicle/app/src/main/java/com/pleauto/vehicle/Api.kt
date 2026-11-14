@@ -6,7 +6,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** 폰 웹 서버(web/src/app/api/vehicle/*)와 통신한다. */
+/** 폰 웹 서버의 차량용 API(web/src/app/api/vehicle 아래)와 통신한다. */
 class Api(private val baseUrl: String = BuildConfig.SERVER_URL) {
 
     class ApiException(message: String, val status: Int) : Exception(message)
