@@ -1,30 +1,33 @@
+@import url("https://fonts.googleapis.com/css2?family=Asta+Sans:wght@400;500;600;700&display=swap");
+
+/* 목업(Pleos 디자인 가이드) 색 */
 :root {
-  --bg: #f6f7f9;
+  --bg: #f2f3f6;
   --card: #ffffff;
-  --text: #15181d;
-  --muted: #6b7380;
-  --line: #e3e6eb;
-  --accent: #0b5fff;
+  --text: #131417;
+  --muted: rgba(19, 20, 23, 0.64);
+  --line: #e0e1e6;
+  --accent: #5a46fa;
   --accent-text: #ffffff;
-  --ok: #138a4a;
-  --warn: #b26a00;
-  --bad: #c62828;
-  --chip: #eef1f5;
-  --radius: 14px;
+  --ok: #02a858;
+  --warn: #e07800;
+  --bad: #e52900;
+  --chip: #edeef2;
+  --radius: 20px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f1115;
-    --card: #181b21;
-    --text: #eceff3;
-    --muted: #9aa3b0;
-    --line: #2a2f38;
-    --accent: #5b8cff;
-    --accent-text: #0b0d12;
-    --ok: #4cc584;
-    --warn: #f0b040;
-    --bad: #ff6b6b;
-    --chip: #232832;
+    --bg: #131417;
+    --card: #1d1e21;
+    --text: #ffffff;
+    --muted: rgba(255, 255, 255, 0.64);
+    --line: #313236;
+    --accent: #6a57ff;
+    --accent-text: #ffffff;
+    --ok: #00e074;
+    --warn: #ffa133;
+    --bad: #ff4c28;
+    --chip: #26272b;
   }
 }
 * { box-sizing: border-box; }
@@ -32,7 +35,7 @@ html, body { margin: 0; padding: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-family: "Asta Sans", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -47,13 +50,13 @@ p { margin: 4px 0; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
 textarea, input[type="text"], input[type="date"], input[type="time"], input:not([type]) {
   width: 100%; font: inherit; color: var(--text); background: var(--card);
-  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
 }
 textarea { min-height: 260px; resize: vertical; }
 label { display: block; font-size: 14px; color: var(--muted); margin: 10px 0 4px; }
 button {
   font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text);
-  border-radius: 10px; padding: 8px 14px; cursor: pointer;
+  border-radius: 999px; padding: 8px 16px; cursor: pointer;
 }
 button:disabled { opacity: 0.45; cursor: default; }
 button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
