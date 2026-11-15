@@ -26,6 +26,7 @@ class Listener(context: Context) {
         private set
 
     private var callback: ((Answer, String) -> Unit)? = null
+    private var listenMs = 6000L
     private val timeout = Runnable { finish(Answer.UNKNOWN, "") }
 
     private val results = object : ResultListener {
@@ -33,11 +34,23 @@ class Listener(context: Context) {
             if (isFinal) main.post { finish(classify(text), text) }
         }
         override fun onUpdatedEpdData(start: Long, end: Long) = Unit
-        override fun onStartedRecognition() = Unit
+        override fun onStartedRecognition() {
+            // 엔진이 실제로 듣기 시작한 뒤부터 시간을 잰다 (에뮬레이터는 준비가 느림)
+            main.post {
+                if (callback != null) {
+                    main.removeCallbacks(timeout)
+                    main.postDelayed(timeout, listenMs)
+                }
+            }
+        }
         override fun onEndedRecognition() = Unit
         override fun onError(errorType: ErrorType) {
             Log.w(TAG, "Pleos STT 오류: $errorType")
-            main.post { finish(Answer.UNKNOWN, "") }
+            main.post {
+                // 음성 모델이 없거나 권한·인증 문제면 다시 시도하지 않고 버튼으로만 답한다
+                if (errorType in UNRECOVERABLE) available = false
+                finish(Answer.UNKNOWN, "")
+            }
         }
         override fun onReady() = Unit
         override fun onUpdatedRms(rms: Double) = Unit
@@ -64,12 +77,16 @@ class Listener(context: Context) {
         }
     }
 
-    /** 최대 [timeoutMs] 동안 듣고 대답을 한 번 돌려준다 (메인 스레드) */
-    fun listen(timeoutMs: Long = 6000, onAnswer: (Answer, String) -> Unit) {
+    /**
+     * 듣기 시작한 뒤 최대 [timeoutMs] 동안 듣고 대답을 한 번 돌려준다 (메인 스레드).
+     * 엔진이 듣기 시작하지 못하면 [startMs] 뒤에 UNKNOWN.
+     */
+    fun listen(timeoutMs: Long = 6000, startMs: Long = 15000, onAnswer: (Answer, String) -> Unit) {
         if (!available) return
         cancel()
         callback = onAnswer
-        main.postDelayed(timeout, timeoutMs)
+        listenMs = timeoutMs
+        main.postDelayed(timeout, startMs)
         runCatching { stt?.request() }.onFailure { finish(Answer.UNKNOWN, "") }
     }
 
@@ -97,6 +114,8 @@ class Listener(context: Context) {
 
     companion object {
         private const val TAG = "Listener"
+        private val UNRECOVERABLE = setOf(ErrorType.ON_DEVICE_ENGINE_ERROR, ErrorType.UNAVAILABLE_LANGUAGE,
+            ErrorType.NOT_SUPPORTED_API, ErrorType.PERMISSION_DENIED, ErrorType.UNAUTHENTICATED, ErrorType.MIC_ERROR)
         private val NO = listOf("아니", "아뇨", "다음", "건너", "싫어", "나중", "취소", "말고")
         private val YES = listOf("응", "네", "예", "좋아", "가자", "출발", "시작", "그래", "안내", "오케이")
 

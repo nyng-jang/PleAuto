@@ -30,6 +30,7 @@ class Speaker(context: Context) {
 
     private var pending: Pair<String, (() -> Unit)?>? = null
     private var onDone: (() -> Unit)? = null
+    private var lastText: String? = null
 
     private val pleosEvents = object : EventListener {
         override fun onStart() = Unit
@@ -37,8 +38,8 @@ class Speaker(context: Context) {
         override fun onDone() = finish()
         override fun onStop() = Unit
         override fun onError(errorType: ErrorType) {
-            Log.w(TAG, "Pleos TTS 오류: $errorType")
-            finish()
+            Log.w(TAG, "Pleos TTS 오류: $errorType → 기본 TTS로 다시 말함")
+            main.post { switchToFallback() }
         }
         override fun onUpdatedRms(rms: Double) = Unit
     }
@@ -80,6 +81,7 @@ class Speaker(context: Context) {
             return
         }
         this.onDone = onDone
+        lastText = text
         when {
             pleosReady -> runCatching { pleos?.speak(text, true) }.onFailure { finish() }
             fallbackReady -> fallback?.speak(text, AndroidTts.QUEUE_FLUSH, null, UTTERANCE)
@@ -100,6 +102,21 @@ class Speaker(context: Context) {
             pleos?.release()
         }
         fallback?.shutdown()
+    }
+
+    /** Pleos 엔진이 말하다 실패하면(에뮬레이터에 음성 모델이 없을 때 등) 이후로는 기본 TTS만 쓴다 */
+    private fun switchToFallback() {
+        if (!pleosReady) return
+        pleosReady = false
+        val text = lastText
+        val cb = onDone
+        onDone = null
+        if (text == null) return
+        if (fallbackReady) say(text, cb) else {
+            decided = false
+            pending = text to cb
+            useFallback()
+        }
     }
 
     private fun useFallback() {

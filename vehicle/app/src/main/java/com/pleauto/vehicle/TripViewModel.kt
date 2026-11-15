@@ -181,8 +181,8 @@ class TripViewModel(app: Application) : AndroidViewModel(app) {
         val stop = nextStop() ?: return run { screen = Screen.DayEnd }
         screen = Screen.Suggest(stop)
         val ok = stop.status == PlaceStatus.CONFIRMED
-        val question = if (ok) "다음 목적지는 ${stop.name}이에요. 안내를 시작할까요?"
-            else "${stop.name}은 장소를 찾지 못했어요. 건너뛸까요?"
+        val question = if (ok) "다음 목적지는 ${stop.name}${josa(stop.name, "이에요", "예요")}. 안내를 시작할까요?"
+            else "${stop.name}${josa(stop.name, "은", "는")} 장소를 찾지 못했어요. 건너뛸까요?"
         speaker.say(question) { listenAnswer(stop, ok) }
     }
 
@@ -299,4 +299,11 @@ private class DrivingState(context: Context, private val onChange: (Boolean) -> 
         runCatching { manager?.unregisterListener() }
         runCatching { car?.disconnect() }
     }
+}
+
+/** 받침이 있으면 [withFinal], 없으면 [noFinal] (한글이 아니면 받침 있음으로 본다) */
+internal fun josa(word: String, withFinal: String, noFinal: String): String {
+    val c = word.trim().lastOrNull() ?: return withFinal
+    if (c !in '가'..'힣') return withFinal
+    return if ((c - '가') % 28 == 0) noFinal else withFinal
 }
