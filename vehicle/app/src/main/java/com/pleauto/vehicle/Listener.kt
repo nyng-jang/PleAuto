@@ -8,6 +8,7 @@ import ai.pleos.playground.stt.SpeechToText
 import ai.pleos.playground.stt.constant.ErrorType
 import ai.pleos.playground.stt.constant.Mode
 import ai.pleos.playground.stt.listener.OnInitializeListener
+import ai.pleos.playground.stt.listener.OnServerConnectionListener
 import ai.pleos.playground.stt.listener.ResultListener
 import java.util.Locale
 
@@ -15,7 +16,7 @@ import java.util.Locale
 enum class Answer { YES, NO, UNKNOWN }
 
 /**
- * 음성 대답 듣기. Pleos SpeechToText(ON_DEVICE: Client ID/Secret 불필요).
+ * 음성 대답 듣기. Pleos SpeechToText. Client ID/Secret이 있으면 HYBRID(서버 우선), 없으면 ON_DEVICE.
  * 마이크는 Pleos 음성 서비스가 다루므로 앱이 RECORD_AUDIO를 요청하지 않는다.
  * 음성 서비스가 없으면 available=false 이고, 화면 버튼으로만 답한다.
  */
@@ -58,14 +59,25 @@ class Listener(context: Context) {
 
     init {
         try {
-            val s = SpeechToText(context.applicationContext, Mode.ON_DEVICE)
+            val s = SpeechToText(context.applicationContext, if (PleosKeys.enabled) Mode.HYBRID else Mode.ON_DEVICE)
             stt = s
             s.initialize(object : OnInitializeListener {
                 override fun onSuccess() {
                     main.post {
                         runCatching { s.setLocale(Locale.KOREA) }
                         s.addListener(results)
-                        available = true
+                        if (!PleosKeys.enabled) {
+                            available = true
+                            return@post
+                        }
+                        s.registerApp(PleosKeys.clientId, PleosKeys.clientSecret, object : OnServerConnectionListener {
+                            override fun onConnected() {
+                                main.post { Log.i(TAG, "Pleos STT 서버 연결"); available = true }
+                            }
+                            override fun onFailed(errorType: ErrorType) {
+                                main.post { Log.w(TAG, "Pleos STT 앱 등록 실패: $errorType → 기기 내 엔진"); available = true }
+                            }
+                        })
                     }
                 }
                 override fun onFailure(errorType: ErrorType) {

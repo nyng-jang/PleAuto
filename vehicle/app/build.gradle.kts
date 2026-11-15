@@ -13,6 +13,10 @@ val localProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 val serverUrl: String = localProps.getProperty("pleauto.serverUrl") ?: "http://10.0.2.2:3000"
+// Pleos 콘솔 My Project의 Client ID/Secret. 넣으면 TTS·STT를 HYBRID(서버 우선)로 쓴다.
+// local.properties 는 git에 올라가지 않는다. 값이 APK에 들어가므로 공개 release APK는 빼고 빌드한다.
+val pleosClientId: String = localProps.getProperty("pleos.clientId").orEmpty()
+val pleosClientSecret: String = localProps.getProperty("pleos.clientSecret").orEmpty()
 
 android {
     namespace = "com.pleauto.vehicle"
@@ -25,6 +29,8 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
+        buildConfigField("String", "PLEOS_CLIENT_ID", "\"$pleosClientId\"")
+        buildConfigField("String", "PLEOS_CLIENT_SECRET", "\"$pleosClientSecret\"")
     }
 
     buildTypes {

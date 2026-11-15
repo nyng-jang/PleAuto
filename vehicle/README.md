@@ -53,5 +53,13 @@ cd vehicle
 
 - 주행 중에는 코드 입력 키패드가 잠깁니다. 일정·제안·안내 화면은 주행 중에도 씁니다.
   - 에뮬레이터에서 주행 상태 흉내: Extended Controls > Car data에서 기어 D·속도를 바꿉니다.
-- TTS·STT는 ON_DEVICE 모드라 Client ID/Secret 없이 동작합니다. Pleos 음성 서비스가 없으면 기본 TTS와 버튼만 씁니다.
+- TTS·STT는 기본이 ON_DEVICE 모드라 Client ID/Secret 없이 동작합니다. Pleos 음성 서비스가 없으면 기본 TTS와 버튼만 씁니다.
+- 에뮬레이터에는 기기 내 음성인식 모델이 없어 음성 대답이 안 됩니다. Pleos 콘솔 My Project의 Client ID/Secret을 `vehicle/local.properties`에 넣으면 HYBRID(서버 우선) 모드로 앱 등록을 합니다.
+
+  ```
+  pleos.clientId=...
+  pleos.clientSecret=...
+  ```
+
+  이 값은 APK에 들어갑니다. 공개용 release APK는 이 두 줄을 빼고 빌드하세요.
 - "도착 처리" 버튼은 에뮬레이터 시연용입니다. 실제 차량에서는 내비 도착 이벤트로 넘어갑니다.

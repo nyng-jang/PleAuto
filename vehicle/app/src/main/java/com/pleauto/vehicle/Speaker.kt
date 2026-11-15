@@ -9,13 +9,15 @@ import ai.pleos.playground.tts.constant.ErrorType
 import ai.pleos.playground.tts.constant.Mode
 import ai.pleos.playground.tts.listener.EventListener
 import ai.pleos.playground.tts.listener.OnInitializeListener
+import ai.pleos.playground.tts.listener.OnServerConnectionListener
 import android.speech.tts.TextToSpeech as AndroidTts
 import android.speech.tts.UtteranceProgressListener
 import java.util.Locale
 
 /**
- * 음성 안내. Pleos TextToSpeech(ON_DEVICE: Client ID/Secret 불필요)를 쓰고,
- * Pleos 음성 서비스가 없거나 초기화에 실패하면 안드로이드 기본 TTS로 말한다.
+ * 음성 안내. Pleos TextToSpeech를 쓴다. Client ID/Secret이 있으면 HYBRID(서버 우선, 실패 시 기기 내),
+ * 없으면 ON_DEVICE. Pleos 음성 서비스가 없거나 실패하면
+ * 안드로이드 기본 TTS로 말한다.
  * say()의 onDone은 말이 끝난 뒤 메인 스레드에서 한 번 불린다.
  */
 class Speaker(context: Context) {
@@ -46,15 +48,27 @@ class Speaker(context: Context) {
 
     init {
         try {
-            val tts = PleosTts(app, Mode.ON_DEVICE)
+            val tts = PleosTts(app, if (PleosKeys.enabled) Mode.HYBRID else Mode.ON_DEVICE)
             pleos = tts
             tts.initialize(object : OnInitializeListener {
                 override fun onSuccess() {
                     main.post {
                         runCatching { tts.setLocale(Locale.KOREA) }
                         tts.addEventListener(pleosEvents)
-                        pleosReady = true
-                        decide()
+                        if (!PleosKeys.enabled) {
+                            pleosReady = true
+                            decide()
+                            return@post
+                        }
+                        // 서버를 쓰려면 앱 등록(onConnected) 뒤에 말한다. 실패해도 HYBRID는 기기 내 엔진으로 말한다
+                        tts.registerApp(PleosKeys.clientId, PleosKeys.clientSecret, object : OnServerConnectionListener {
+                            override fun onConnected() {
+                                main.post { Log.i(TAG, "Pleos TTS 서버 연결"); pleosReady = true; decide() }
+                            }
+                            override fun onFailed(errorType: ErrorType) {
+                                main.post { Log.w(TAG, "Pleos TTS 앱 등록 실패: $errorType → 기기 내 엔진"); pleosReady = true; decide() }
+                            }
+                        })
                     }
                 }
                 override fun onFailure(errorType: ErrorType) {
@@ -68,8 +82,8 @@ class Speaker(context: Context) {
             Log.w(TAG, "Pleos TTS 없음 → 기본 TTS 사용", e)
             useFallback()
         }
-        // Pleos 음성 서비스가 응답하지 않으면 3초 뒤 기본 TTS로
-        main.postDelayed({ if (!pleosReady) useFallback() }, 3000)
+        // Pleos 음성 서비스가 응답하지 않으면 기본 TTS로 (서버 등록은 조금 더 기다린다)
+        main.postDelayed({ if (!pleosReady) useFallback() }, if (PleosKeys.enabled) 8000 else 3000)
     }
 
     /** Pleos TTS 사용 여부 (화면·로그 확인용) */
@@ -155,4 +169,11 @@ class Speaker(context: Context) {
         const val TAG = "Speaker"
         const val UTTERANCE = "pleauto"
     }
+}
+
+/** Pleos 콘솔 My Project의 Client ID/Secret (vehicle/local.properties → BuildConfig). 없으면 기기 내 모드만 쓴다 */
+internal object PleosKeys {
+    val clientId: String = BuildConfig.PLEOS_CLIENT_ID
+    val clientSecret: String = BuildConfig.PLEOS_CLIENT_SECRET
+    val enabled: Boolean get() = clientId.isNotBlank() && clientSecret.isNotBlank()
 }
