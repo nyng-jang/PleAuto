@@ -14,7 +14,7 @@
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
 ![Gemini](https://img.shields.io/badge/Google_Gemini-일정_해석-4285F4?logo=googlegemini&logoColor=white)
 
-[**APK 받기**](apk/플레오토_PleAuto_release.apk) · [**폰 웹 열기**](https://pleauto.vercel.app) · [**시연 영상**](docs/PleAuto_demo.mp4)
+[**APK 받기**](apk/장나영_PleAuto_release.apk) · [**폰 웹 열기**](https://pleauto.vercel.app) · [**시연 영상**](docs/PleAuto_demo.mp4)
 
 </div>
 
@@ -85,7 +85,7 @@ APK는 배포된 폰 웹 서버(`https://pleauto.vercel.app`)에 연결되도록
 1. **Pleos Connect 에뮬레이터 준비** (설치 방법은 [`vehicle/README.md`](vehicle/README.md#준비))
 2. **APK 설치**
    ```bash
-   adb install "apk/플레오토_PleAuto_release.apk"
+   adb install "apk/장나영_PleAuto_release.apk"
    ```
 3. **폰 웹에서 계획 만들기**: 폰이나 PC 브라우저로 [pleauto.vercel.app](https://pleauto.vercel.app) → 계획 붙여 넣기 → 일정표·장소 확인 → "저장하고 차량 연결" → **6자리 코드 받기**
 4. **차량 앱 연결**: 에뮬레이터에서 PleAuto를 열고 코드 입력 → 폰 웹에서 **승인**
@@ -112,7 +112,7 @@ cd vehicle && ./gradlew assembleRelease
 | 에뮬레이터 | Pleos Connect 에뮬레이터 v2.1.0 (Android 14, API 34, Automotive) |
 | 화면 규격 | 1920 x 1080 |
 | 패키지 | `com.pleauto.vehicle` (v0.1.0) |
-| APK | [`apk/플레오토_PleAuto_release.apk`](apk/플레오토_PleAuto_release.apk) |
+| APK | [`apk/장나영_PleAuto_release.apk`](apk/장나영_PleAuto_release.apk) |
 
 ## 폴더 구조
 
@@ -120,6 +120,6 @@ cd vehicle && ./gradlew assembleRelease
 PleAuto/
 ├── web/        폰 웹 (Next.js) · 계획 해석, 장소 확정, 차량 연결, 차량 앱용 API(/api/vehicle/*)
 ├── vehicle/    차량 앱 (Kotlin, Pleos Connect SDK)
-├── apk/        release APK (플레오토_PleAuto_release.apk)
+├── apk/        release APK (장나영_PleAuto_release.apk)
 └── docs/       화면 캡처, 시연 영상
 ```
