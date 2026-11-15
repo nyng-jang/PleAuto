@@ -20,6 +20,16 @@
 
 ---
 
+## 공모전 제출 정보
+
+| 항목 | 내용 |
+|---|---|
+| 앱 이름 및 한 줄 소개 | **플레오토 (PleAuto)** · 폰에 메모처럼 적은 여행 계획을, 차가 순서대로 안내하는 앱 |
+| 실행 방법 | APK 설치 → 폰 웹에서 계획 만들고 6자리 코드 받기 → 차량 앱에 코드 입력 ([빠른 시작](#빠른-시작)) |
+| 테스트 환경 및 필요한 설정 | Pleos Connect 에뮬레이터 (설치: [vehicle/README](vehicle/README.md#준비)). APK는 배포 서버(pleauto.vercel.app)에 연결되어 별도 서버 설정 불필요 |
+| 에뮬레이터 버전 · 화면 규격 | Pleos Connect 에뮬레이터 v2.1.0 (Android 14, API 34, Automotive) · 1920 x 1080 |
+| APK 파일 위치 | [`apk/장나영_PleAuto_release.apk`](apk/장나영_PleAuto_release.apk) |
+
 ## 화면 미리보기
 
 ### 폰 웹: 계획 입력부터 차량 연결까지
