@@ -1,4 +1,4 @@
-# 다음 목적지 · 차량 앱
+# PleAuto(플레오토) · 차량 앱
 
 Pleos Connect(Android Automotive)용 Kotlin 앱입니다. 폰 웹에서 받은 6자리 코드로 연결하고, 오늘 일정 순서대로 다음 목적지를 제안해 차량 내비로 안내를 요청합니다.
 

@@ -8,7 +8,7 @@
 |---|---|
 | `web/` | 폰 웹 (Next.js 15). 계획 해석, 장소 확정, 6자리 코드로 차량 연결, 차량 앱용 API |
 | `vehicle/` | 차량 앱 (Kotlin, Android Automotive, Pleos Connect SDK). 제작 중 |
-| `apk/` | 차량 앱 release APK (`팀명_앱이름_release.apk`) |
+| `apk/` | 차량 앱 release APK (`팀명_앱이름_release.apk` (플레오토_PleAuto_release.apk)) |
 
 ## 실행 방법
 
