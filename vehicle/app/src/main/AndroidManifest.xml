@@ -7,6 +7,9 @@
     <!-- Pleos NaviHelper: 경로 요청·취소 / 경로 정보 조회 -->
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE_SEARCH" />
     <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />
+    <!-- Pleos TextToSpeech / SpeechToText (마이크는 Pleos 음성 서비스가 다룸) -->
+    <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
+    <uses-permission android:name="pleos.car.permission.STT_SERVICE" />
 
     <!-- usesCleartextTraffic: 개발 중 http://10.0.2.2:3000 접속용. https 배포 서버로 바꾸면 지운다 -->
     <application
