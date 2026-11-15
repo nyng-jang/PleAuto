@@ -31,4 +31,4 @@ API 키가 하나도 없어도 돌아갑니다. 이때는 규칙 기반 해석, 
 
 ## 저장소 키 (Redis)
 
-`plan:{phoneId}` 계획, `code:{6자리}` 60초 TTL, `req:{id}` 연결 요청 5분 TTL, `conn:{token}` 승인된 차량, `phoneconns:{phoneId}` 폰의 차량 목록.
+`plan:{phoneId}` 계획, `code:{6자리}` 3분 TTL, `req:{id}` 연결 요청 5분 TTL, `conn:{token}` 승인된 차량, `phoneconns:{phoneId}` 폰의 차량 목록.
