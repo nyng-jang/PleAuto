@@ -14,6 +14,8 @@
     <!-- usesCleartextTraffic: 개발 중 http://10.0.2.2:3000 접속용. https 배포 서버로 바꾸면 지운다 -->
     <application
         android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
