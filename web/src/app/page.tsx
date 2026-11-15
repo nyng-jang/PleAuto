@@ -98,7 +98,7 @@ export default function Home() {
 
   return (
     <main>
-      <h1>다음 목적지</h1>
+      <h1>PleAuto</h1>
       <p className="muted">폰에 정리한 여행 계획을 차량 내비로 이어 드려요.</p>
       <div className="steps">
         {STEP_NAMES.map(([s, name]) => (

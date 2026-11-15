@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "다음 목적지",
+  title: "PleAuto",
   description: "여행 계획을 차량 내비로 이어 주는 폰 웹",
 };
 
