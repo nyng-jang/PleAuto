@@ -675,7 +675,7 @@ function ShareStep({ draft, update, phoneId }: { draft: Draft; update: (p: Parti
           </>
         ) : (
           <>
-            <p className="muted">처음 연결하는 차량에만 필요해요. 코드는 1분 동안 쓸 수 있어요.</p>
+            <p className="muted">처음 연결하는 차량에만 필요해요. 코드는 3분 동안 쓸 수 있어요.</p>
             <button className="primary" style={{ marginTop: 8 }} disabled={saved !== "saved"} onClick={issue}>
               6자리 코드 받기
             </button>

@@ -1,8 +1,8 @@
-// 일회용 숫자 6자리 연결 코드 발급 (1분 유효)
+// 일회용 숫자 6자리 연결 코드 발급 (3분 유효)
 import { fail, json, validPhoneId } from "@/lib/http";
 import { keys, store } from "@/lib/store";
 
-const CODE_TTL_SEC = 60;
+const CODE_TTL_SEC = 180;
 
 export async function POST(req: Request) {
   const { phoneId } = (await req.json().catch(() => ({}))) as { phoneId?: string };

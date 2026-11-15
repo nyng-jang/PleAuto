@@ -106,7 +106,7 @@ export function store(): Store {
 
 export const keys = {
   plan: (phoneId: string) => `plan:${phoneId}`,
-  code: (code: string) => `code:${code}`, // → { phoneId }, 60초
+  code: (code: string) => `code:${code}`, // → { phoneId }, 180초
   phoneCode: (phoneId: string) => `phonecode:${phoneId}`, // 폰의 현재 코드
   request: (reqId: string) => `req:${reqId}`, // 차량 연결 요청
   phoneRequest: (phoneId: string) => `phonereq:${phoneId}`, // 폰이 기다리는 요청 id
