@@ -104,9 +104,11 @@ private fun App(vm: TripViewModel) {
 // ---- 공통 ----
 
 @Composable
-private fun BigButton(text: String, filled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun BigButton(text: String, filled: Boolean = true, modifier: Modifier = Modifier, enabled: Boolean = true,
+                      onClick: () -> Unit) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.height(100.dp),
         shape = RoundedCornerShape(32.dp),
         colors = if (filled) ButtonDefaults.buttonColors()
@@ -146,8 +148,9 @@ private fun CodeScreen(s: Screen.Code, vm: TripViewModel) {
         Column(Modifier.weight(1f)) {
             Text("폰과 연결해요", fontSize = Headline, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(16.dp))
-            Text("폰 웹의 \"차량과 연결\"에서 받은 6자리 숫자를 입력해 주세요.", fontSize = Body,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.64f))
+            Text(if (vm.isDriving) "주행 중에는 입력할 수 없어요. 정차한 뒤 입력해 주세요."
+                else "폰 웹의 \"차량과 연결\"에서 받은 6자리 숫자를 입력해 주세요.", fontSize = Body,
+                color = if (vm.isDriving) Alert else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.64f))
             Spacer(Modifier.height(40.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 for (i in 0 until 6) {
@@ -162,14 +165,14 @@ private fun CodeScreen(s: Screen.Code, vm: TripViewModel) {
                 Text(it, fontSize = Body, color = Alert)
             }
             Spacer(Modifier.height(40.dp))
-            BigButton("연결하기", modifier = Modifier.width(360.dp), onClick = vm::submitCode)
+            BigButton("연결하기", modifier = Modifier.width(360.dp), enabled = !vm.isDriving, onClick = vm::submitCode)
         }
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             listOf("123", "456", "789", "<0").forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     row.forEach { c ->
                         val label = if (c == '<') "지움" else c.toString()
-                        BigButton(label, filled = false, modifier = Modifier.width(160.dp)) {
+                        BigButton(label, filled = false, modifier = Modifier.width(160.dp), enabled = !vm.isDriving) {
                             if (c == '<') vm.deleteDigit() else vm.typeDigit(c)
                         }
                     }
@@ -257,7 +260,11 @@ private fun SuggestScreen(stop: Stop, vm: TripViewModel) {
         Text(if (ok) listOf(stop.time, stop.place?.address.orEmpty()).filter { it.isNotBlank() }.joinToString(" · ")
             else "폰에서 장소를 지정하면 안내할 수 있어요", fontSize = Body,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.64f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(64.dp))
+        Spacer(Modifier.height(24.dp))
+        // 음성으로 답할 수 있을 때: 말이 끝나면 몇 초 동안 듣는다
+        Text(if (vm.listening) "듣고 있어요 · \"응\" 또는 \"아니\"라고 말해 주세요" else " ", fontSize = Body,
+            color = Active, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(40.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
             if (ok) BigButton("안내 시작", modifier = Modifier.weight(1f)) { vm.startGuide(stop) }
             BigButton("건너뛰기", filled = !ok, modifier = Modifier.weight(1f)) { vm.skip(stop) }

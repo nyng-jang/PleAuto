@@ -1,7 +1,10 @@
 package com.pleauto.vehicle
 
 import android.app.Application
+import android.car.Car
+import android.car.drivingstate.CarUxRestrictionsManager
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -30,6 +33,7 @@ class TripViewModel(app: Application) : AndroidViewModel(app) {
     private val api = Api()
     private val prefs = app.getSharedPreferences("pleauto", Context.MODE_PRIVATE)
     private val speaker = Speaker(app)
+    private val listener = Listener(app)
     val navigator: Navigator = Navigator.create(app)
 
     var screen by mutableStateOf<Screen>(Screen.Loading)
@@ -41,6 +45,13 @@ class TripViewModel(app: Application) : AndroidViewModel(app) {
     var progress by mutableStateOf(loadProgress())
         private set
     var notice by mutableStateOf<String?>(null)
+    /** 주행 중이면 true: 코드 입력(키패드)을 막는다 */
+    var isDriving by mutableStateOf(false)
+        private set
+    /** 음성 대답을 듣는 중 */
+    var listening by mutableStateOf(false)
+        private set
+    private val driving = DrivingState(app) { isDriving = it }
 
     private var pollJob: Job? = null
 
@@ -58,6 +69,7 @@ class TripViewModel(app: Application) : AndroidViewModel(app) {
     // ---- 연결 ----
 
     fun typeDigit(d: Char) {
+        if (isDriving) return
         val s = screen as? Screen.Code ?: return
         if (s.input.length < 6) screen = s.copy(input = s.input + d, error = null)
     }
@@ -68,6 +80,7 @@ class TripViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun submitCode() {
+        if (isDriving) return
         val s = screen as? Screen.Code ?: return
         if (s.input.length != 6) return
         viewModelScope.launch {
@@ -167,20 +180,44 @@ class TripViewModel(app: Application) : AndroidViewModel(app) {
     fun suggestNext() {
         val stop = nextStop() ?: return run { screen = Screen.DayEnd }
         screen = Screen.Suggest(stop)
-        if (stop.status == PlaceStatus.CONFIRMED) {
-            speaker.say("다음 목적지는 ${stop.name}이에요. 안내를 시작할까요?")
-        } else {
-            speaker.say("${stop.name}은 장소를 찾지 못했어요. 건너뛸까요?")
+        val ok = stop.status == PlaceStatus.CONFIRMED
+        val question = if (ok) "다음 목적지는 ${stop.name}${josa(stop.name, "이에요", "예요")}. 안내를 시작할까요?"
+            else "${stop.name}${josa(stop.name, "은", "는")} 장소를 찾지 못했어요. 건너뛸까요?"
+        speaker.say(question) { listenAnswer(stop, ok) }
+    }
+
+    /** 제안을 말한 뒤 "응/아니"를 듣는다. 못 알아들으면 버튼으로 답하면 된다 */
+    private fun listenAnswer(stop: Stop, ok: Boolean) {
+        if ((screen as? Screen.Suggest)?.stop != stop || !listener.available) return
+        listening = true
+        listener.listen { answer, text ->
+            listening = false
+            if ((screen as? Screen.Suggest)?.stop != stop) return@listen
+            Log.i(TAG, "음성 대답: \"$text\" → $answer")
+            when {
+                ok && answer == Answer.YES -> startGuide(stop)
+                ok && answer == Answer.NO -> skip(stop)
+                !ok && answer == Answer.YES -> skip(stop)
+                else -> Unit
+            }
         }
     }
 
+    private fun stopListening() {
+        listener.cancel()
+        listening = false
+    }
+
     fun startGuide(stop: Stop) {
+        stopListening()
+        speaker.stop()
         val place = stop.place ?: return
         navigator.routeTo(place)
         screen = Screen.Guiding(stop)
     }
 
     fun skip(stop: Stop) {
+        stopListening()
         mark(stop, Progress.SKIPPED)
         suggestNext()
     }
@@ -199,6 +236,7 @@ class TripViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun backToList() {
+        stopListening()
         speaker.stop()
         screen = Screen.TripList
     }
@@ -224,11 +262,48 @@ class TripViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         speaker.release()
+        listener.release()
+        driving.release()
         navigator.release()
     }
 
     private companion object {
+        const val TAG = "TripViewModel"
         const val KEY_TOKEN = "vehicleToken"
         const val KEY_PROGRESS = "progress"
     }
+}
+
+/**
+ * 주행 중/정차 중. Pleos 주행 제한 가이드대로 CarUxRestrictionsManager를 쓴다.
+ * 차량 서비스가 없으면(일반 안드로이드) 늘 정차 중으로 본다.
+ */
+private class DrivingState(context: Context, private val onChange: (Boolean) -> Unit) {
+    private var car: Car? = null
+    private var manager: CarUxRestrictionsManager? = null
+
+    init {
+        try {
+            val c = Car.createCar(context.applicationContext)
+            car = c
+            val m = c.getCarManager(Car.CAR_UX_RESTRICTION_SERVICE) as CarUxRestrictionsManager
+            manager = m
+            onChange(m.currentCarUxRestrictions?.isRequiresDistractionOptimization == true)
+            m.registerListener { r -> onChange(r.isRequiresDistractionOptimization) }
+        } catch (e: Throwable) {
+            Log.w("DrivingState", "차량 주행 상태를 읽을 수 없음 → 정차 중으로 처리", e)
+        }
+    }
+
+    fun release() {
+        runCatching { manager?.unregisterListener() }
+        runCatching { car?.disconnect() }
+    }
+}
+
+/** 받침이 있으면 [withFinal], 없으면 [noFinal] (한글이 아니면 받침 있음으로 본다) */
+internal fun josa(word: String, withFinal: String, noFinal: String): String {
+    val c = word.trim().lastOrNull() ?: return withFinal
+    if (c !in '가'..'힣') return withFinal
+    return if ((c - '가') % 28 == 0) noFinal else withFinal
 }

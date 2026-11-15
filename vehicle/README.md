@@ -19,7 +19,7 @@ Pleos Connect(Android Automotive)용 Kotlin 앱입니다. 폰 웹에서 받은 6
 1. Android Studio에서 `vehicle/` 폴더를 엽니다. Gradle 동기화가 끝날 때까지 기다립니다.
 2. 에뮬레이터를 켜고 `app`을 실행합니다.
 3. 폰 웹(`http://localhost:3000`)에서 계획을 만들고 "차량과 연결"에서 받은 6자리 코드를 차량 앱에 입력합니다.
-4. 폰에서 승인하면 오늘 일정이 뜹니다. "다음 목적지 안내"를 누르면 음성으로 제안하고, "안내 시작"을 누르면 내비에 경로를 요청합니다.
+4. 폰에서 승인하면 오늘 일정이 뜹니다. "다음 목적지 안내"를 누르면 음성으로 제안하고, 몇 초 동안 대답을 듣습니다. "응·가자·좋아"면 내비에 경로를 요청하고, "아니·다음"이면 다음 일정으로 넘깁니다. 버튼으로도 답할 수 있습니다.
 
 서버 주소는 기본값이 `http://10.0.2.2:3000`(에뮬레이터에서 본 PC의 localhost)입니다. 배포 서버를 쓰려면 `vehicle/local.properties`에 아래 줄을 넣습니다.
 
@@ -43,13 +43,15 @@ cd vehicle
 |---|---|
 | `Api.kt` | 폰 웹 서버의 `/api/vehicle/*` 호출 (연결 요청, 승인 확인, 계획 조회, 연결 해제) |
 | `Plan.kt` | 계획 데이터 |
-| `TripViewModel.kt` | 화면 상태와 흐름 (코드 → 승인 대기 → 목록 → 제안 → 안내 → 하루 마무리), 진행 상황 저장 |
+| `TripViewModel.kt` | 화면 상태와 흐름 (코드 → 승인 대기 → 목록 → 제안 → 안내 → 하루 마무리), 진행 상황 저장, 주행 중 판단(CarUxRestrictionsManager) |
 | `Navigator.kt` | Pleos NaviHelper 3.0.5 연동. 내비 서비스가 없으면 시연 모드(`FakeNavigator`)로 동작 |
-| `Speaker.kt` | 음성 안내 (지금은 안드로이드 기본 TTS, 다음 단계에서 Pleos TextToSpeech로 교체) |
+| `Speaker.kt` | 음성 안내. Pleos TextToSpeech 3.3.1(ON_DEVICE), 실패하면 안드로이드 기본 TTS |
+| `Listener.kt` | 음성 대답 듣기. Pleos SpeechToText 3.3.1(ON_DEVICE), "응/아니" 분류 |
 | `MainActivity.kt` | Compose 화면. Pleos 디자인 값(브랜드 #5A46FA, 버튼 100h·radius 32) |
 
 ## 알려진 한계 (다음 단계)
 
-- 음성 응답(STT) 대신 버튼으로 답합니다. Pleos SpeechToText 연동 예정.
-- 주행 중/정차 중 구분(Vehicle SDK)은 아직 없습니다. 코드 입력은 정차 중에만 받도록 바꿀 예정.
+- 주행 중에는 코드 입력 키패드가 잠깁니다. 일정·제안·안내 화면은 주행 중에도 씁니다.
+  - 에뮬레이터에서 주행 상태 흉내: Extended Controls > Car data에서 기어 D·속도를 바꿉니다.
+- TTS·STT는 ON_DEVICE 모드라 Client ID/Secret 없이 동작합니다. Pleos 음성 서비스가 없으면 기본 TTS와 버튼만 씁니다.
 - "도착 처리" 버튼은 에뮬레이터 시연용입니다. 실제 차량에서는 내비 도착 이벤트로 넘어갑니다.
